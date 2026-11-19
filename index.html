@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="软件工程课程项目集，包含 JavaFX 游戏与 Java 卡牌管理系统的交互演示。">
+  <title>软件工程项目集</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./portfolio.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">⌘</span><span id="brand-name">软件工程项目集</span></a>
+      <nav aria-label="主导航"><a href="#projects">项目</a><a href="#about">关于我</a></nav>
+    </div>
+  </header>
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <p class="eyebrow">软件工程大三 · 寒假实习</p>
+      <h1 id="hero-title">课程项目集<span>.</span></h1>
+      <p class="intro">两款 JavaFX 游戏和一个卡牌管理系统。查看两款 JavaFX 游戏的实机画面，也可以打开卡牌资料库进行在线检索。</p>
+      <a class="button primary" href="#projects">查看项目</a>
+    </section>
+    <section class="wrap projects" id="projects" aria-labelledby="projects-title">
+      <div class="section-heading"><h2 id="projects-title">项目展示</h2><span>Java 桌面与 Web</span></div>
+
+      <article class="project" id="deal">
+        <button class="project-visual deal-visual" type="button" data-gallery="deal" aria-label="放大大富翁 Deal 本地对局截图">
+          <img src="./media/deal.webp" alt="JavaFX 大富翁 Deal 的实际对局界面，包含玩家桌面、牌库、手牌和操作按钮" width="1280" height="820">
+          <span class="visual-caption">本地对局 · 实机截图</span>
+          <span class="zoom" aria-hidden="true">＋</span>
+        </button>
+        <div class="project-content">
+          <p class="project-kind">小组课设 · 卡牌游戏</p>
+          <h3>大富翁 Deal</h3>
+          <p>通过出牌、收租和交易凑齐地产组。支持本地对局、机器人和同一局域网内的多人对局。</p>
+          <ul class="tags" aria-label="技术栈"><li>Java 17</li><li>JavaFX</li><li>TCP</li><li>JUnit</li></ul>
+          <details>
+            <summary>查看技术细节</summary>
+            <p>玩家端提交操作，主机使用规则引擎校验后同步每位玩家可见的牌局状态。同一套规则处理回合、行动牌和付款流程。项目中包含规则和主机／客户端联机的测试代码。</p>
+          </details>
+          <p class="contribution" data-contribution="deal" hidden></p>
+          <div class="project-links" data-links="deal" hidden></div>
+        </div>
+      </article>
+
+      <article class="project" id="frog">
+        <button class="project-visual frog-visual" type="button" data-gallery="frog" aria-label="放大青蛙过河游戏截图">
+          <img src="./media/frog.webp" alt="JavaFX 青蛙过河的实际游戏画面，包含青蛙、车辆、河道平台和计时信息" width="600" height="800" loading="lazy">
+          <span class="visual-caption">闯关画面 · 实机截图</span>
+          <span class="zoom" aria-hidden="true">＋</span>
+        </button>
+        <div class="project-content">
+          <p class="project-kind">课程项目 · 街机游戏</p>
+          <h3>青蛙过河</h3>
+          <p>在倒计时内躲过车流，借助浮木和乌龟越过河道，抵达对岸。关卡推进后，障碍移动得更快。</p>
+          <ul class="tags" aria-label="技术栈"><li>Java</li><li>JavaFX Canvas</li><li>课程引擎</li></ul>
+          <details>
+            <summary>查看技术细节</summary>
+            <p>每次更新处理按键、计时和障碍移动，再根据碰撞及平台接触状态更新青蛙。站上移动平台时，青蛙会随平台一起移动。</p>
+          </details>
+          <p class="contribution" data-contribution="frog" hidden></p>
+          <div class="project-links" data-links="frog" hidden></div>
+        </div>
+      </article>
+
+      <article class="project" id="cards">
+        <div class="cards-visual">
+          <p>卡牌资料库</p>
+          <strong>检索与筛选</strong>
+          <span>关键词 · 类型 · 颜色 · 稀有度</span>
+        </div>
+        <div class="project-content">
+          <p class="project-kind">数据库课设 · Web 应用</p>
+          <h3>大富翁卡牌管理系统</h3>
+          <p>浏览卡牌列表，按关键词或卡牌属性进行筛选，也可以打开具体卡牌查看效果、价格和稀有度。</p>
+          <ul class="tags" aria-label="技术栈"><li>Java</li><li>JSP</li><li>Servlet</li><li>MySQL</li></ul>
+          <details>
+            <summary>查看技术细节</summary>
+            <p>Servlet 处理检索与筛选条件，DAO 使用 JDBC 查询 MySQL，结果由 JSP 渲染。在线体验使用项目的卡牌演示数据，在浏览器内完成查询和筛选。</p>
+          </details>
+          <p class="contribution" data-contribution="cards" hidden></p>
+          <div class="project-links" data-links="cards"><a class="button primary" href="./cards/">在线体验卡牌系统</a></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="about" id="about" aria-labelledby="about-title">
+      <div class="wrap about-inner">
+        <h2 id="about-title">关于我</h2>
+        <div>
+          <p id="profile-text">我是一名软件工程专业的大三学生，正在寻找寒假软件开发实习。</p>
+          <a id="email-link" class="button primary" hidden>联系我</a>
+          <a class="github-link" href="https://github.com/lix-6">GitHub · lix-6</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap footer"><span>软件工程项目集</span><a href="#top">回到顶部</a></footer>
+
+  <dialog id="gallery" aria-label="实机截图预览">
+    <div class="gallery-toolbar">
+      <p id="gallery-caption"></p>
+      <form method="dialog"><button class="close" aria-label="关闭截图">×</button></form>
+    </div>
+    <img id="gallery-image" alt="">
+    <div class="gallery-controls" hidden>
+      <button class="button" id="gallery-prev" type="button">上一张</button>
+      <button class="button" id="gallery-next" type="button">下一张</button>
+    </div>
+  </dialog>
+  <dialog id="demo" aria-label="项目演示">
+    <div class="gallery-toolbar">
+      <p id="demo-title"></p>
+      <form method="dialog"><button class="close" aria-label="关闭视频">×</button></form>
+    </div>
+    <video controls playsinline preload="metadata"></video>
+  </dialog>
+</body>
+</html>

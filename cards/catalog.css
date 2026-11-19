@@ -1,0 +1,38 @@
+.catalog { padding-block: clamp(32px, 6vw, 78px); }
+.catalog-intro { margin-bottom: 29px; }
+.catalog-intro h1 { font-size: clamp(2.4rem, 6vw, 4.35rem); margin-bottom: 12px; }
+.catalog-intro > p:last-child { color: var(--muted); margin-bottom: 0; }
+.filters {
+  display: grid;
+  grid-template-columns: minmax(195px, 1.6fr) repeat(4, minmax(105px, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 19px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #e8f0e8;
+}
+.filters label { display: grid; gap: 5px; font-weight: 650; font-size: .875rem; }
+.filters :is(input, select) {
+  width: 100%; min-height: 42px; padding: 7px 9px; color: var(--ink); font: inherit;
+  font-weight: 450; border: 1px solid #b3c5b9; border-radius: 6px; background: white;
+}
+.filters select { appearance: none; padding-right: 22px; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23142d24' stroke-width='1.5' d='m1 1 5 5 5-5'/%3E%3C/svg%3E") no-repeat right 7px center; }
+.filters > button { white-space: nowrap; }
+#result-count { color: var(--muted); margin: 18px 0 10px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: white; }
+.table-wrap table { width: 100%; min-width: 650px; border-collapse: collapse; }
+.table-wrap th, .table-wrap td { padding: 12px 15px; text-align: left; }
+.table-wrap th { background: #edf3ee; white-space: nowrap; }
+.table-wrap td { border-top: 1px solid #e1e9e2; }
+.table-wrap tbody tr:hover { background: #f2f7f2; }
+.table-wrap button { appearance: none; border: 0; padding: 0; background: transparent; color: var(--green); text-align: left; font-weight: 700; text-decoration: underline; text-underline-offset: .16em; }
+#card-detail { width: min(540px, calc(100% - 24px)); padding: 21px; }
+#card-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 18px; margin-bottom: 4px; }
+#card-detail dt { font-weight: 650; }
+#card-detail dd { margin: 0; }
+@media (max-width: 860px) {
+  .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters .keyword { grid-column: 1 / -1; }
+  .filters > button { grid-column: 1 / -1; justify-self: start; }
+}
