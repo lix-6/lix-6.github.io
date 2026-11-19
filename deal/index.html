@@ -1,67 +1,101 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="大富翁 Deal 课程项目的浏览器人机对战试玩。">
   <title>大富翁 Deal · Yixuan_Li</title>
-  <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="./deal.css">
   <script type="module" src="./play.mjs"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap topbar-inner">
-      <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">⌘</span>Yixuan_Li · 项目集</a>
-      <a href="../#deal">返回项目</a>
-    </div>
-  </header>
-  <main class="wrap deal-game">
-    <header class="deal-heading">
-      <div><p class="eyebrow">人机对战</p><h1>大富翁 Deal</h1></div>
-      <button class="button primary" id="start" type="button" disabled>开始对局</button>
+  <main class="deal-game">
+    <header class="table-heading">
+      <h1>Local Table</h1>
+      <p>Play locally with the same card-face layout used across the app.</p>
     </header>
-    <p class="deal-intro">先凑齐三组完整地产的一方获胜。选一张手牌，再决定如何使用它。</p>
-    <p id="status" class="notice" role="status">正在加载游戏。</p>
-    <noscript><p>请启用 JavaScript 以开始对局。</p></noscript>
-    <section id="table" hidden aria-label="牌桌">
-      <div class="table-banner">
-        <strong id="turn">你的回合</strong>
-        <dl class="deal-stats">
-          <div><dt>牌库</dt><dd id="deck">0</dd></div>
-          <div><dt>弃牌</dt><dd id="discard">0</dd></div>
-          <div><dt>剩余出牌</dt><dd id="plays">3</dd></div>
-        </dl>
-      </div>
-      <div class="boards" id="boards"></div>
-      <section class="hand-panel" aria-labelledby="hand-title">
-        <div class="hand-heading">
-          <h2 id="hand-title">我的手牌</h2>
-          <button class="button" id="end-turn" type="button">结束回合</button>
+    <p id="loading" role="status">Loading Monopoly Deal…</p>
+    <noscript><p>Enable JavaScript to play Monopoly Deal.</p></noscript>
+    <section id="table" hidden aria-label="Monopoly Deal table">
+      <div class="toolbar">
+        <p id="turn" class="turn-status" aria-live="polite"></p>
+        <div class="toolbar-actions">
+          <button id="history-button" type="button">Action History</button>
+          <button id="exit-button" type="button">Exit Game</button>
         </div>
-        <div id="hand" class="hand"></div>
-        <aside class="selected-card" aria-labelledby="selected-name">
-          <div><h3 id="selected-name">选择一张手牌</h3><p id="selected-info"></p></div>
-          <div class="card-actions">
-            <button class="button primary" id="play-card" type="button" disabled>出牌</button>
-            <button class="button" id="bank-card" type="button" disabled>存入银行</button>
+      </div>
+      <div class="table-layout">
+        <section class="panel players-panel" aria-label="Players">
+          <nav class="player-nav" aria-label="Browse players">
+            <button id="previous-player" type="button">Previous</button>
+            <span id="player-page" aria-live="polite"></span>
+            <button id="next-player" type="button">Next</button>
+          </nav>
+          <div id="boards"></div>
+        </section>
+        <section class="panel play-panel" aria-label="Your cards and actions">
+          <h2 id="selected-name">Card Preview</h2>
+          <p id="selected-info" class="preview-info"></p>
+          <div class="play-layout">
+            <div id="preview" class="preview-frame"></div>
+            <section class="actions" aria-labelledby="actions-title">
+              <h2 id="actions-title">Actions</h2>
+              <div class="action-buttons">
+                <button class="primary" id="play-card" type="button">Play Card</button>
+                <button id="bank-card" type="button">To Bank</button>
+                <button id="property-card" type="button">To Properties</button>
+                <button id="move-card" type="button">Move Wildcard</button>
+                <button class="primary" id="end-turn" type="button">End Turn</button>
+                <button id="rules-button" type="button">Rules</button>
+              </div>
+              <p class="muted">Select a hand card before playing it. Click any table card to preview it here.</p>
+              <p id="status" role="status" lang="zh-CN"></p>
+              <button class="primary" id="restart" type="button" hidden>New Game</button>
+            </section>
           </div>
-        </aside>
-      </section>
-      <details class="deal-log"><summary>回合记录</summary><pre id="log"></pre></details>
+          <section class="hand-panel" aria-labelledby="hand-title">
+            <h2 id="hand-title">Current Hand</h2>
+            <div id="hand" class="hand"></div>
+          </section>
+        </section>
+      </div>
     </section>
   </main>
-  <dialog id="choice" aria-labelledby="choice-title">
+  <dialog id="choice" aria-labelledby="choice-title" lang="zh-CN">
     <h2 id="choice-title"></h2>
     <p id="choice-help"></p>
     <form id="choice-form">
       <div id="options" class="options"></div>
       <p id="choice-count" aria-live="polite"></p>
       <p id="choice-notice" role="status"></p>
-      <div class="card-actions">
-        <button class="button primary" id="confirm-choice" type="submit">确认选择</button>
-        <button class="button" id="cancel-choice" type="button">取消</button>
+      <div class="dialog-actions">
+        <button class="primary" id="confirm-choice" type="submit">确认选择</button>
+        <button id="cancel-choice" type="button">取消</button>
       </div>
+    </form>
+  </dialog>
+  <dialog id="history" aria-labelledby="history-title">
+    <h2 id="history-title">Action History</h2>
+    <pre id="log" lang="zh-CN"></pre>
+    <form method="dialog" class="dialog-actions"><button>Close</button></form>
+  </dialog>
+  <dialog id="rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">Rules</h2>
+    <ul>
+      <li>Complete three different property sets to win.</li>
+      <li>Play up to three cards each turn. Put money in the bank, add properties to your table, or play actions such as Rent.</li>
+      <li>Use cards from your bank or properties on the table to pay other players. You do not receive change.</li>
+      <li>At the end of your turn, discard down to seven cards if needed.</li>
+    </ul>
+    <form method="dialog" class="dialog-actions"><button>Close</button></form>
+  </dialog>
+  <dialog id="exit" aria-labelledby="exit-title">
+    <h2 id="exit-title">Exit Game</h2>
+    <p>Your current game will be lost if you leave or start a new game.</p>
+    <form method="dialog" class="dialog-actions">
+      <button autofocus>Keep Playing</button>
+      <button id="new-game" type="button">New Game</button>
+      <a class="button" href="../#deal">Back to Portfolio</a>
     </form>
   </dialog>
 </body>

@@ -1,19 +1,36 @@
 const get = (id) => document.getElementById(id);
 const ui = Object.fromEntries([
-  "start", "status", "table", "turn", "deck", "discard", "plays", "boards", "hand", "end-turn",
-  "selected-name", "selected-info", "play-card", "bank-card", "log", "choice", "choice-title",
-  "choice-help", "choice-form", "options", "choice-count", "choice-notice", "confirm-choice", "cancel-choice",
+  "loading", "table", "status", "turn", "boards", "previous-player", "player-page", "next-player",
+  "hand", "selected-name", "selected-info", "preview", "play-card", "bank-card", "property-card",
+  "move-card", "end-turn", "restart", "history-button", "rules-button", "exit-button",
+  "history", "rules", "exit", "new-game", "log", "choice", "choice-title", "choice-help",
+  "choice-form", "options", "choice-count", "choice-notice", "confirm-choice", "cancel-choice",
 ].map((id) => [id, get(id)]));
-const typeLabel = { PROPERTY: "地产", MONEY: "现金", ACTION: "行动", WILDCARD: "万能地产", BUILDING: "建筑" };
-const typeColor = { PROPERTY: "#ad5841", MONEY: "#27794b", ACTION: "#456f9b", WILDCARD: "#8764a4", BUILDING: "#a37932" };
-const propertyColors = { BROWN: "#865236", LIGHT_BLUE: "#56a2bf", PINK: "#ba5d92", ORANGE: "#d57b38",
-  RED: "#b64d48", YELLOW: "#cda32f", GREEN: "#398055", DARK_BLUE: "#365a9c", RAILROAD: "#343c42", UTILITY: "#6b6660" };
+const compactTypes = { PROPERTY: "PROP", MONEY: "MONEY", ACTION: "ACT", WILDCARD: "WILD", BUILDING: "BLDG" };
+const propertyStyles = {
+  BROWN: ["Brown", "#8b5e3c", [1, 2]], LIGHT_BLUE: ["Light Blue", "#78c8f5", [1, 2, 3]],
+  PINK: ["Pink", "#ef74c6", [1, 2, 4]], ORANGE: ["Orange", "#f4a340", [1, 3, 5]],
+  RED: ["Red", "#e35d5b", [2, 3, 6]], YELLOW: ["Yellow", "#f0d14f", [2, 4, 6]],
+  GREEN: ["Green", "#4caf6f", [2, 4, 7]], DARK_BLUE: ["Dark Blue", "#3563d9", [3, 8]],
+  RAILROAD: ["Railroad", "#4d4d4d", [1, 2, 3, 4]], UTILITY: ["Utility", "#8f92b4", [1, 2]],
+};
 const propertyNames = { BROWN: "棕色", LIGHT_BLUE: "浅蓝", PINK: "粉色", ORANGE: "橙色",
   RED: "红色", YELLOW: "黄色", GREEN: "绿色", DARK_BLUE: "深蓝", RAILROAD: "铁路", UTILITY: "公用事业" };
+const actionColors = {
+  "Deal Breaker": "#8b64c7", "Sly Deal": "#76b86a", "Forced Deal": "#7ec8a0",
+  "Debt Collector": "#6db8da", "It's My Birthday": "#f3a79e", "Double The Rent": "#e7d06c",
+  "Pass Go": "#98c2f0", "Just Say No": "#7cd7f3",
+};
+const phaseNames = {
+  START_OF_TURN: "Start of Turn", PLAYING_CARDS: "Playing Cards", AWAITING_TARGET: "Choosing Target",
+  AWAITING_PAYMENT: "Awaiting Payment", DISCARDING: "Discarding", TURN_END: "Turn End", GAME_OVER: "Game Over",
+};
+const auxiliaryDialogs = [ui.history, ui.rules, ui.exit];
 
 let engine;
 let state;
-let selectedId;
+let selection;
+let viewedPlayer = 0;
 let botTimer;
 let choiceKey;
 
@@ -24,6 +41,10 @@ function node(tag, text, className = "") {
   return element;
 }
 
+function playerName(index) {
+  return index === 0 ? "Player 1" : "Player 2 (Bot)";
+}
+
 function humanTurn() {
   return state.turn === 0 && state.phase === "PLAYING_CARDS" && !state.choice && !state.winner;
 }
@@ -32,84 +53,188 @@ function run(action) {
   clearTimeout(botTimer);
   try {
     state = JSON.parse(action());
-    if (!state.players[0].hand.some((card) => card.id === selectedId)) selectedId = undefined;
+    if (!selectedCard()) selection = undefined;
     render();
     if (state.turn === 1 && !state.winner && !state.choice) {
       botTimer = setTimeout(() => run(engine.stepBot), 550);
     }
   } catch (error) {
-    ui.status.textContent = "对局遇到问题，可以重新开局。";
+    if (ui.table.hidden) ui.loading.textContent = "The game could not start. Refresh the page to try again.";
+    else ui.status.textContent = "对局遇到问题，可以通过 Exit Game 重新开局。";
     console.error(error);
   }
 }
 
-function renderSeat(player, own) {
-  const seat = node("section", "", "seat");
-  seat.append(node("h3", player.name), node("p",
-    `手牌 ${player.handCount} 张 · 银行 ${player.balance}M · 完整地产 ${player.completed}/3`, "seat-summary"));
-  const groups = node("div", "", "property-groups");
-  const occupiedSets = player.sets.filter((set) => set.cards.length > 0);
-  for (const set of occupiedSets) {
-    const group = node("div", "", "property-group");
-    group.style.setProperty("--property-color", propertyColors[set.color]);
-    group.append(node("strong", `${propertyNames[set.color] ?? set.color} ${set.size}/${set.goal}`));
-    const cards = node("div", "", "group-options");
-    for (const card of set.cards) {
-      if (own && card.type === "WILDCARD" && humanTurn()) {
-        const move = node("button", card.name);
-        move.type = "button";
-        move.title = "移动万能地产";
-        move.addEventListener("click", () => run(() => engine.moveWildcard(card.id)));
-        cards.append(move);
-      } else {
-        cards.append(node("span", card.name));
+function startGame() {
+  viewedPlayer = 0;
+  selection = undefined;
+  ui.hand.scrollLeft = 0;
+  run(engine.start);
+}
+
+function selectedCard() {
+  if (!selection) return;
+  const { id, player, zone } = selection;
+  const seat = state.players[player];
+  if (zone === "Properties") {
+    return seat.sets.find((set) => set.color === selection.color)?.cards.find((card) => card.id === id);
+  }
+  return (zone === "Bank" ? seat.bank : seat.hand).find((card) => card.id === id);
+}
+
+function cardName(card) {
+  const property = propertyStyles[card.description.split(": ")[1]];
+  if (card.type === "PROPERTY" && property) return card.name.replace(/^[A-Z_]+/, property[0]);
+  if (card.name === "Multi-colour Rent") return "Multicolor Rent";
+  return card.name;
+}
+
+function cardFace(card, location, preview = false) {
+  const name = cardName(card);
+  const face = node(preview ? "div" : "button", "", "card");
+  if (!preview) {
+    face.type = "button";
+    face.dataset.id = card.id;
+    face.setAttribute("aria-label", name + ", " + card.value + "M");
+    face.addEventListener("click", () => {
+      selection = { ...location, id: card.id };
+      renderSelection();
+    });
+  }
+
+  const header = node("span", "", "card-header");
+  header.append(node("span", preview && card.type !== "WILDCARD" ? card.type : compactTypes[card.type], "card-type"),
+    node("span", card.value + "M", "card-value"));
+  const body = node("span", "", "card-body");
+  const lines = [];
+  let accent = "#8e9ab0";
+  let pill = "";
+  let footer = card.canBank ? "Can also be banked" : "";
+  switch (card.type) {
+    case "MONEY":
+      accent = "#d7b25d";
+      footer = "Use in bank or to pay";
+      body.append(node("span", "M", "money-symbol"), node("span", card.value + " MILLION", "money-amount"));
+      break;
+    case "PROPERTY": {
+      const property = propertyStyles[card.description.split(": ")[1]];
+      if (property) {
+        const [label, color, rents] = property;
+        accent = color;
+        pill = "SET " + label;
+        lines.push("Need " + rents.length + " to complete",
+          "Rent " + rents.map((rent, i) => (i + 1) + "=" + rent + "M").join("  "));
       }
+      footer = "Property card";
+      break;
     }
-    group.append(cards);
-    groups.append(group);
-  }
-  seat.append(occupiedSets.length ? groups : node("p", "暂无地产"));
-  if (player.bank.length) {
-    const bank = node("ul");
-    bank.setAttribute("aria-label", player.name + "的银行");
-    for (const card of player.bank) {
-      const amount = card.value + "M";
-      bank.append(node("li", card.type === "MONEY" ? amount : `${card.name} · ${amount}`));
+    case "WILDCARD": {
+      const anyColor = name === "Any Color Wildcard";
+      const colors = name.replace(/ Wildcard$/, "").split("/");
+      const active = propertyStyles[location.color];
+      const accents = colors.map((color) => propertyStyles[color.toUpperCase().replaceAll(" ", "_")]?.[1] ?? "#8e9ab0");
+      accent = anyColor ? "linear-gradient(to right, #5f6bf2, #f69d3c, #ef5d5d, #64b96a)"
+        : "linear-gradient(to right, " + accents.join(", ") + ")";
+      pill = anyColor ? "ANY COLOR" : "WILDCARD";
+      lines.push(active ? "Active: " + active[0] : "Any set",
+        anyColor ? "Matches any color" : "Switch between " + colors.join(" / ").toUpperCase());
+      footer = anyColor ? "Cannot be used to pay from the table" : "Can move between sets";
+      break;
     }
-    seat.append(bank);
+    case "BUILDING":
+      accent = name === "House" ? "#59a96a" : "#ef6b6b";
+      pill = name.toUpperCase();
+      lines.push("Adds +" + (name === "House" ? 3 : 4) + " rent", "Attach to a full set");
+      break;
+    case "ACTION":
+      accent = actionColors[name] ?? "#efcc58";
+      pill = name.endsWith(" Rent") && name.includes("/") ? "Rent" : name;
+      if (name === "Multicolor Rent") {
+        lines.push("Rent on " + Object.values(propertyStyles).map(([label]) => label.toUpperCase()).sort().join(" / "));
+      } else if (name.includes("/") && name.endsWith(" Rent")) {
+        lines.push("Rent on " + name.replace(/ Rent$/, "").replace("/", " / ").toUpperCase());
+      }
+      lines.push(card.description.replaceAll("_", " "));
+      break;
   }
-  return seat;
+  if (["#8b5e3c", "#3563d9", "#4d4d4d", "#8b64c7"].includes(accent)) face.style.setProperty("--card-ink", "#fff");
+  face.style.setProperty("--card-color", accent);
+  if (pill) body.prepend(node("span", pill, "card-pill"));
+  for (const line of lines) body.append(node("span", line, "card-line"));
+  face.append(header, node("strong", name, "card-title"), body, node("span", footer, "card-footer"));
+  return face;
+}
+
+function cardsRow(cards, location) {
+  const row = node("div", "", "table-cards");
+  row.append(...cards.map((card) => cardFace(card, location)));
+  return row;
+}
+
+function renderBoard() {
+  const index = viewedPlayer;
+  const player = state.players[index];
+  const current = state.turn === index && !state.winner;
+  const seat = node("section", "", current ? "seat current" : "seat");
+  seat.append(node("h2", playerName(index) + (current ? " (Current Turn)" : "")),
+    node("p", "Hand " + player.handCount + " | Bank " + player.balance + "M | Complete Sets " + player.completed, "seat-summary"),
+    node("h3", "Bank"),
+    player.bank.length ? cardsRow(player.bank, { player: index, zone: "Bank" })
+      : node("p", "No bank cards on the table.", "muted"),
+    node("h3", "Property Sets"));
+
+  const sets = player.sets.filter((set) => set.cards.length > 0);
+  if (sets.length) {
+    const groups = node("div", "", "property-groups");
+    for (const set of sets) {
+      const [colorName, color] = propertyStyles[set.color] ?? [set.color, "#8e9ab0"];
+      const group = node("div", "", "property-group");
+      group.style.setProperty("--property-color", color);
+      group.append(node("strong", colorName + " " + set.size + "/" + set.goal),
+        cardsRow(set.cards, { player: index, zone: "Properties", color: set.color }));
+      groups.append(group);
+    }
+    seat.append(groups);
+  } else {
+    seat.append(node("p", "No property sets on the table.", "muted"));
+  }
+  ui.boards.replaceChildren(seat);
+  ui["player-page"].textContent = "Player " + (index + 1) + " / " + state.players.length;
+  ui["previous-player"].disabled = index === 0;
+  ui["next-player"].disabled = index === state.players.length - 1;
 }
 
 function renderSelection() {
-  const card = state.players[0].hand.find((item) => item.id === selectedId);
-  ui["selected-name"].textContent = card?.name ?? "选择一张手牌";
-  ui["selected-info"].textContent = card ? card.description : "";
-  const canPlay = Boolean(card && humanTurn() && state.plays > 0);
+  const card = selectedCard();
+  ui["selected-name"].textContent = card ? cardName(card) : "Card Preview";
+  ui["selected-info"].textContent = card ? playerName(selection.player) + " " + selection.zone + " | Value " + card.value + "M" : "";
+  ui.preview.replaceChildren(card ? cardFace(card, selection, true)
+    : node("p", "Select a card to preview.", "muted empty-preview"));
+  const canPlay = Boolean(card && selection.zone === "Hand" && humanTurn() && state.plays > 0);
   ui["play-card"].disabled = !canPlay || card.type === "MONEY";
   ui["bank-card"].disabled = !canPlay || !card.canBank;
-  for (const button of ui.hand.children) button.setAttribute("aria-pressed", String(button.dataset.id === selectedId));
+  ui["property-card"].disabled = !canPlay || !["PROPERTY", "WILDCARD"].includes(card.type);
+  ui["move-card"].disabled = !(card?.type === "WILDCARD" && selection.player === 0
+    && selection.zone === "Properties" && humanTurn());
+  for (const button of ui.table.querySelectorAll("button[data-id]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.id === selection?.id));
+  }
 }
 
 function render() {
+  ui.loading.hidden = true;
   ui.table.hidden = false;
-  ui.start.textContent = "重新开局";
-  ui.start.disabled = Boolean(state.choice?.required);
-  ui.turn.textContent = state.winner ? `${state.winner}获胜` : state.turn === 0 ? "你的回合" : "机器人回合";
-  ui.status.textContent = state.notice || (state.turn === 1 ? "机器人正在出牌。" : "选择手牌或结束回合。");
-  for (const key of ["deck", "discard", "plays"]) ui[key].textContent = state[key];
-  ui.boards.replaceChildren(...state.players.map((player, index) => renderSeat(player, index === 0)));
-  ui.hand.replaceChildren(...state.players[0].hand.map((card) => {
-    const button = node("button", "", "hand-card");
-    button.type = "button";
-    button.dataset.id = card.id;
-    button.style.setProperty("--card-color", typeColor[card.type]);
-    button.append(node("strong", card.name), node("span", `${typeLabel[card.type]} · ${card.value}M`));
-    button.addEventListener("click", () => { selectedId = card.id; renderSelection(); });
-    return button;
-  }));
+  const winner = state.players.findIndex((player) => player.name === state.winner);
+  const phase = phaseNames[state.phase] ?? state.phase;
+  ui.turn.textContent = (state.winner ? playerName(winner) + " wins" : playerName(state.turn)) + " | Phase: " + phase
+    + " | Deck: " + state.deck + " | Discard: " + state.discard
+    + " | Played: " + (3 - state.plays) + "/3 | Remaining: " + state.plays;
+  ui.status.textContent = state.notice;
   ui["end-turn"].disabled = !humanTurn();
+  ui.restart.hidden = !state.winner;
   ui.log.textContent = state.log.trim().split("\n").slice(-25).join("\n");
+  renderBoard();
+  ui.hand.replaceChildren(...state.players[0].hand.map((card) => cardFace(card, { player: 0, zone: "Hand" })));
   renderSelection();
   renderChoice();
 }
@@ -159,17 +284,40 @@ function renderChoice() {
   ui["choice-notice"].textContent = state.notice;
   ui["cancel-choice"].hidden = choice.required;
   updateChoiceCount();
-  if (!ui.choice.open) ui.choice.showModal();
+  if (!ui.choice.open) {
+    for (const dialog of auxiliaryDialogs) {
+      if (dialog.open) dialog.close();
+    }
+    ui.choice.showModal();
+  }
 }
 
 try {
   engine = await import("./engine.mjs");
-  ui.start.disabled = false;
-  ui.status.textContent = "点击「开始对局」，与机器人对战。";
-  ui.start.addEventListener("click", () => { selectedId = undefined; run(engine.start); });
+  ui["previous-player"].addEventListener("click", () => {
+    viewedPlayer -= 1;
+    renderBoard();
+    renderSelection();
+  });
+  ui["next-player"].addEventListener("click", () => {
+    viewedPlayer += 1;
+    renderBoard();
+    renderSelection();
+  });
   ui["end-turn"].addEventListener("click", () => run(engine.endTurn));
-  ui["play-card"].addEventListener("click", () => run(() => engine.play(selectedId, false)));
-  ui["bank-card"].addEventListener("click", () => run(() => engine.play(selectedId, true)));
+  for (const button of [ui["play-card"], ui["property-card"]]) {
+    button.addEventListener("click", () => run(() => engine.play(selection.id, false)));
+  }
+  ui["bank-card"].addEventListener("click", () => run(() => engine.play(selection.id, true)));
+  ui["move-card"].addEventListener("click", () => run(() => engine.moveWildcard(selection.id)));
+  for (const dialog of auxiliaryDialogs) {
+    ui[dialog.id + "-button"].addEventListener("click", () => dialog.showModal());
+  }
+  ui["new-game"].addEventListener("click", () => {
+    ui.exit.close();
+    startGame();
+  });
+  ui.restart.addEventListener("click", startGame);
   ui["choice-form"].addEventListener("change", updateChoiceCount);
   ui["choice-form"].addEventListener("submit", (event) => {
     event.preventDefault();
@@ -180,7 +328,8 @@ try {
     event.preventDefault();
     if (!state.choice.required) run(engine.cancel);
   });
+  startGame();
 } catch (error) {
-  ui.status.textContent = "游戏加载失败，请刷新页面重试。";
+  ui.loading.textContent = "The game could not load. Refresh the page to try again.";
   console.error(error);
 }
