@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="大富翁 Deal 课程项目的浏览器人机对战试玩。">
+  <title>大富翁 Deal · Yixuan_Li</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="./deal.css">
+  <script type="module" src="./play.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">⌘</span>Yixuan_Li · 项目集</a>
+      <a href="../#deal">返回项目</a>
+    </div>
+  </header>
+  <main class="wrap deal-game">
+    <header class="deal-heading">
+      <div><p class="eyebrow">人机对战</p><h1>大富翁 Deal</h1></div>
+      <button class="button primary" id="start" type="button" disabled>开始对局</button>
+    </header>
+    <p class="deal-intro">先凑齐三组完整地产的一方获胜。选一张手牌，再决定如何使用它。</p>
+    <p id="status" class="notice" role="status">正在加载游戏。</p>
+    <noscript><p>请启用 JavaScript 以开始对局。</p></noscript>
+    <section id="table" hidden aria-label="牌桌">
+      <div class="table-banner">
+        <strong id="turn">你的回合</strong>
+        <dl class="deal-stats">
+          <div><dt>牌库</dt><dd id="deck">0</dd></div>
+          <div><dt>弃牌</dt><dd id="discard">0</dd></div>
+          <div><dt>剩余出牌</dt><dd id="plays">3</dd></div>
+        </dl>
+      </div>
+      <div class="boards" id="boards"></div>
+      <section class="hand-panel" aria-labelledby="hand-title">
+        <div class="hand-heading">
+          <h2 id="hand-title">我的手牌</h2>
+          <button class="button" id="end-turn" type="button">结束回合</button>
+        </div>
+        <div id="hand" class="hand"></div>
+        <aside class="selected-card" aria-labelledby="selected-name">
+          <div><h3 id="selected-name">选择一张手牌</h3><p id="selected-info"></p></div>
+          <div class="card-actions">
+            <button class="button primary" id="play-card" type="button" disabled>出牌</button>
+            <button class="button" id="bank-card" type="button" disabled>存入银行</button>
+          </div>
+        </aside>
+      </section>
+      <details class="deal-log"><summary>回合记录</summary><pre id="log"></pre></details>
+    </section>
+  </main>
+  <dialog id="choice" aria-labelledby="choice-title">
+    <h2 id="choice-title"></h2>
+    <p id="choice-help"></p>
+    <form id="choice-form">
+      <div id="options" class="options"></div>
+      <p id="choice-count" aria-live="polite"></p>
+      <p id="choice-notice" role="status"></p>
+      <div class="card-actions">
+        <button class="button primary" id="confirm-choice" type="submit">确认选择</button>
+        <button class="button" id="cancel-choice" type="button">取消</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
