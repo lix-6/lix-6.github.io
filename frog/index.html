@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="青蛙过河课程项目的浏览器试玩，支持键盘和触屏。">
+  <title>青蛙过河 · Yixuan_Li</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="./frog.css">
+  <script type="module" src="./play.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="../"><span class="brand-mark" aria-hidden="true">⌘</span>Yixuan_Li · 项目集</a>
+      <a href="../#frog">返回项目</a>
+    </div>
+  </header>
+  <main class="wrap frog-game">
+    <div class="board-wrap">
+      <canvas id="frog-board" width="600" height="800" tabindex="0" aria-label="青蛙过河游戏画面" aria-describedby="game-instructions">
+        你的浏览器需要支持 HTML Canvas 才能试玩。
+      </canvas>
+    </div>
+    <section class="game-controls" aria-labelledby="game-title">
+      <h1 id="game-title">青蛙过河</h1>
+      <p id="game-instructions">用方向键或下方按钮移动。躲开车辆，踩着浮木和乌龟过河，将青蛙送进对岸的五个安全格。</p>
+      <dl class="game-stats">
+        <div><dt>关卡</dt><dd id="game-level">1</dd></div>
+        <div><dt>生命</dt><dd id="game-lives">3</dd></div>
+        <div><dt>时间</dt><dd id="game-timer">30</dd></div>
+        <div><dt>得分</dt><dd id="game-score">0</dd></div>
+      </dl>
+      <div class="game-buttons">
+        <button id="game-start" class="button primary" type="button" disabled>开始游戏</button>
+        <button id="game-pause" class="button" type="button" disabled>暂停</button>
+      </div>
+      <div class="direction-pad" aria-label="方向键">
+        <button class="button direction-up" type="button" data-direction="1" aria-label="向上" disabled>↑</button>
+        <button class="button direction-left" type="button" data-direction="4" aria-label="向左" disabled>←</button>
+        <button class="button direction-down" type="button" data-direction="2" aria-label="向下" disabled>↓</button>
+        <button class="button direction-right" type="button" data-direction="8" aria-label="向右" disabled>→</button>
+      </div>
+      <p id="game-status" role="status">正在加载游戏。</p>
+      <noscript><p>请启用 JavaScript 以开始游戏。</p></noscript>
+    </section>
+  </main>
+</body>
+</html>

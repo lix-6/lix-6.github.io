@@ -1,0 +1,28 @@
+.frog-game { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .72fr); align-items: center; gap: clamp(22px, 5vw, 75px); padding-block: clamp(20px, 4vw, 54px); }
+.board-wrap { display: grid; place-items: center; min-width: 0; padding: 12px; border-radius: 14px; background: #172824; }
+#frog-board { display: block; width: min(100%, 420px, calc(64dvh * .75)); height: auto; background: #141434; image-rendering: pixelated; }
+#frog-board:focus-visible { outline-color: #acd18c; }
+.game-controls h1 { font-size: clamp(2.25rem, 5vw, 4rem); margin: 0 0 12px; }
+.game-controls > p { color: var(--muted); max-width: 27rem; margin-block: 0 16px; }
+.game-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin: 0 0 16px; }
+.game-stats > div { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 4px; text-align: center; }
+.game-stats dt { font-size: .875rem; color: var(--muted); }
+.game-stats dd { font-weight: 700; margin: 0; font-variant-numeric: tabular-nums; }
+.game-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.game-buttons :disabled, .direction-pad :disabled { opacity: .54; cursor: default; }
+.direction-pad { display: grid; grid-template-columns: repeat(3, 46px); grid-template-areas: ". up ." "left down right"; gap: 6px; width: max-content; margin-block: 16px; }
+.direction-pad button { justify-content: center; font-size: 1.25rem; touch-action: manipulation; padding: 0; }
+.direction-up { grid-area: up; }
+.direction-left { grid-area: left; }
+.direction-down { grid-area: down; }
+.direction-right { grid-area: right; }
+@media (max-width: 700px) {
+  .frog-game { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  #frog-board { width: min(100%, calc(53dvh * .75)); }
+  .game-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 8px; }
+  .game-controls :is(h1, #game-instructions, .game-stats, #game-status, noscript) { grid-column: 1 / -1; }
+  .game-controls h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  .game-controls > p { margin-bottom: 8px; }
+  .game-stats { margin-bottom: 8px; }
+  .direction-pad { grid-column: 2; margin: 0 0 6px; }
+}
